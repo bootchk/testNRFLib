@@ -1,7 +1,15 @@
 
 # lloyd konneker
 # Derived from Polidea's github repository cmake-nRF5x
-# Changed: include a cmake script to patch for v14.2
+
+# Changed: 
+#  include a cmake script to patch for v14.2
+#  modified some macros
+#  update SD version numbers
+
+# If you modify the targets created, you may need to regenerate the project
+# i.e. "cmake -G "Eclipse CDT4 - Ninja  etc." or similar
+
 
 
 
@@ -30,6 +38,10 @@ elseif (NOT NRF_TARGET)
 else ()
     message(FATAL_ERROR "Only nRF51 and rRF52 boards are supported right now")
 endif ()
+
+
+
+# TODO hardcoded for SD version (5) in two places
 
 macro(nRF5x_setup)
     # fix on macOS: prevent cmake from adding implicit parameters to Xcode
@@ -77,7 +89,7 @@ macro(nRF5x_setup)
         set(NRF5_LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/gcc_nrf52.ld")
         set(CPU_FLAGS "-mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16")
         add_definitions(-DNRF52 -DNRF52832 -DNRF52_PAN_64 -DNRF52_PAN_12 -DNRF52_PAN_58 -DNRF52_PAN_54 -DNRF52_PAN_31 -DNRF52_PAN_51 -DNRF52_PAN_36 -DNRF52_PAN_15 -DNRF52_PAN_20 -DNRF52_PAN_55 -DBOARD_PCA10040)
-        add_definitions(-DSOFTDEVICE_PRESENT -DS132 -DBLE_STACK_SUPPORT_REQD -DNRF_SD_BLE_API_VERSION=3)
+        add_definitions(-DSOFTDEVICE_PRESENT -DS132 -DBLE_STACK_SUPPORT_REQD -DNRF_SD_BLE_API_VERSION=5)
         include_directories(
                 "${NRF5_SDK_PATH}/components/softdevice/s132/headers"
                 "${NRF5_SDK_PATH}/components/softdevice/s132/headers/nrf52"
@@ -86,7 +98,7 @@ macro(nRF5x_setup)
                 "${NRF5_SDK_PATH}/components/toolchain/system_nrf52.c"
                 "${NRF5_SDK_PATH}/components/toolchain/gcc/gcc_startup_nrf52.S"
                 )
-        set(SOFTDEVICE_PATH "${NRF5_SDK_PATH}/components/softdevice/s132/hex/s132_nrf52_3.0.0_softdevice.hex")
+        set(SOFTDEVICE_PATH "${NRF5_SDK_PATH}/components/softdevice/s132/hex/s132_nrf52_5.0.0_softdevice.hex")
     endif ()
 
     set(COMMON_FLAGS "-MP -MD -mthumb -mabi=aapcs -Wall -Werror -O3 -g3 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin --short-enums ${CPU_FLAGS}")
@@ -193,10 +205,17 @@ macro(nRF5x_setup)
             )
 endmacro(nRF5x_setup)
 
+
+
 # adds a target for comiling and flashing an executable
 macro(nRF5x_addExecutable EXECUTABLE_NAME SOURCE_FILES)
     # executable
     add_executable(${EXECUTABLE_NAME} ${SDK_SOURCE_FILES} ${SOURCE_FILES})
+    nRF5x_modifyExeTarget(${EXECUTABLE_NAME})
+endmacro()  
+
+
+macro(nRF5x_modifyExeTarget EXECUTABLE_NAME)
     set_target_properties(${EXECUTABLE_NAME} PROPERTIES SUFFIX ".out")
     set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS "-Wl,-Map=${EXECUTABLE_NAME}.map")
 

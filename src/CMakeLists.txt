@@ -1,6 +1,9 @@
+
+# not important which version is used
 cmake_minimum_required (VERSION 2.6)
 
-project (testNRFLib)
+# !!! project includes C, C++, and assembler (.S)
+project (testNRFLib C CXX ASM)
 
 # cmake includes modules from here
 # !!! only for simple names without the .cmake suffix
@@ -27,13 +30,14 @@ nRF5x_setup()
 message(" Linker script is ${NRF5_LINKER_SCRIPT}")
 
 
-set(NRFDRIVERS_DIR  "/home/bootch/git/libNRFDrivers")
+
 
 # import libs from outside project
+set(NRFDRIVERS_DIR  "/home/bootch/git/libNRFDrivers")
 add_library(NRFDrivers STATIC IMPORTED)
 set_target_properties( NRFDrivers 
     PROPERTIES 
-        IMPORTED_LOCATION /home/bootch/git/libNRFDrivers/Debug/libNRFDrivers.a
+        IMPORTED_LOCATION "${NRFDRIVERS_DIR}/Debug/libNRFDrivers.a"
         INTERFACE_INCLUDE_DIRECTORIES "${NRFDRIVERS_DIR}"
     )
 
@@ -83,7 +87,7 @@ target_link_libraries(
         NRFDrivers
     )
     
-
+nRF5x_modifyExeTarget(testNRFLib)
     
 list(SORT SDK_SOURCE_FILES)
 message("SDK sources are ${SDK_SOURCE_FILES}")
