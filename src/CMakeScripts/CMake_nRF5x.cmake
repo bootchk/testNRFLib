@@ -43,6 +43,82 @@ endif ()
 
 # TODO hardcoded for SD version (5) in two places
 
+
+# Softdevice handler
+# Required if SD compatible drivers used
+macro(nRF5x_defineSDKSourcesSDH)
+        list(APPEND SDK_SOURCE_FILES
+            "${NRF5_SDK_PATH}/components/softdevice/common/nrf_sdh.c"
+            )
+endmacro()
+
+
+
+# utils
+# required for SD and SD compatible drivers
+macro(nRF5x_defineSDKSourcesUtils)
+
+    # "${NRF5_SDK_PATH}/components/libraries/util/sdk_errors.c"
+    
+    list(APPEND SDK_SOURCE_FILES
+            "${NRF5_SDK_PATH}/components/libraries/hardfault/hardfault_implementation.c"
+            "${NRF5_SDK_PATH}/components/libraries/util/nrf_assert.c"
+            "${NRF5_SDK_PATH}/components/libraries/util/app_error.c"
+            "${NRF5_SDK_PATH}/components/libraries/util/app_error_weak.c"
+            "${NRF5_SDK_PATH}/components/libraries/util/app_util_platform.c"
+            "${NRF5_SDK_PATH}/components/libraries/util/app_util_platform.c"
+            "${NRF5_SDK_PATH}/components/libraries/util/sdk_mapped_flags.c"
+            )    
+endmacro()
+
+
+
+# API to BLE functions of SD
+macro(nRF5x_defineSDKSourcesBLE)
+     # Optional for capability: negotiate connection params
+     # sdk_config.h>NRF_BLE_CONN_PARAMS_ENABLED
+     # "${NRF5_SDK_PATH}/components/ble/common/ble_conn_params.c"
+
+    list(APPEND SDK_SOURCE_FILES
+            "${NRF5_SDK_PATH}/components/ble/common/ble_advdata.c"
+            "${NRF5_SDK_PATH}/components/ble/common/ble_conn_state.c"
+            "${NRF5_SDK_PATH}/components/ble/common/ble_srv_common.c"
+            )   
+endmacro()
+
+
+# board support
+# apparently conditionally compiled so no change to text size if no board is defined
+macro(nRF5x_defineSDKSourcesBSP)
+    list(APPEND SDK_SOURCE_FILES
+            "${NRF5_SDK_PATH}/components/boards/boards.c"
+            )
+endmacro()
+
+# SD compatbile drivers
+# common is required by all drivers
+macro(nRF5x_defineSDKSourcesDrivers)
+    list(APPEND SDK_SOURCE_FILES
+            "${NRF5_SDK_PATH}/components/drivers_nrf/common/nrf_drv_common.c"
+            # "${NRF5_SDK_PATH}/components/drivers_nrf/clock/nrf_drv_clock.c"
+            #"${NRF5_SDK_PATH}/components/drivers_nrf/uart/nrf_drv_uart.c"
+            #"${NRF5_SDK_PATH}/components/drivers_nrf/rtc/nrf_drv_rtc.c"
+            #"${NRF5_SDK_PATH}/components/drivers_nrf/gpiote/nrf_drv_gpiote.c"
+            )
+endmacro()
+
+
+
+# Basic i.e. required for most builds
+# e.g. when Softdevice and SD compatible drivers used
+macro(nRF5x_defineSDKSourcesAll)
+    nRF5x_defineSDKSourcesSDH()
+    nRF5x_defineSDKSourcesDrivers()
+    nRF5x_defineSDKSourcesUtils()
+endmacro()
+
+
+
 macro(nRF5x_setup)
     # fix on macOS: prevent cmake from adding implicit parameters to Xcode
     set(CMAKE_OSX_SYSROOT "/")
@@ -61,10 +137,7 @@ macro(nRF5x_setup)
     include_directories(
             "${NRF5_SDK_PATH}/components/softdevice/common"
     )
-
-    list(APPEND SDK_SOURCE_FILES
-            "${NRF5_SDK_PATH}/components/softdevice/common/nrf_sdh.c"
-            )
+    
 
     # CPU specyfic settings
     if (NRF_TARGET MATCHES "nrf51")
@@ -151,45 +224,15 @@ macro(nRF5x_setup)
             "${NRF5_SDK_PATH}/external/segger_rtt/"
     )
 
-    # basic board support and drivers
-    list(APPEND SDK_SOURCE_FILES
-            "${NRF5_SDK_PATH}/components/boards/boards.c"
-            "${NRF5_SDK_PATH}/components/drivers_nrf/common/nrf_drv_common.c"
-            "${NRF5_SDK_PATH}/components/drivers_nrf/clock/nrf_drv_clock.c"
-            "${NRF5_SDK_PATH}/components/drivers_nrf/uart/nrf_drv_uart.c"
-            "${NRF5_SDK_PATH}/components/drivers_nrf/rtc/nrf_drv_rtc.c"
-            "${NRF5_SDK_PATH}/components/drivers_nrf/gpiote/nrf_drv_gpiote.c"
-            )
-
-    # drivers and utils
-    # "${NRF5_SDK_PATH}/components/libraries/util/sdk_errors.c"
     
-    list(APPEND SDK_SOURCE_FILES
-            "${NRF5_SDK_PATH}/components/libraries/hardfault/hardfault_implementation.c"
-            "${NRF5_SDK_PATH}/components/libraries/util/nrf_assert.c"
-            "${NRF5_SDK_PATH}/components/libraries/util/app_error.c"
-            "${NRF5_SDK_PATH}/components/libraries/util/app_error_weak.c"
-            "${NRF5_SDK_PATH}/components/libraries/util/app_util_platform.c"
-            "${NRF5_SDK_PATH}/components/libraries/util/app_util_platform.c"
-            "${NRF5_SDK_PATH}/components/libraries/util/sdk_mapped_flags.c"
-            )
-
     # Common Bluetooth Low Energy files
     include_directories(
             "${NRF5_SDK_PATH}/components/ble"
             "${NRF5_SDK_PATH}/components/ble/common"
     )
 
-# Optional for capability: negotiate connection params
-# sdk_config.h>NRF_BLE_CONN_PARAMS_ENABLED
-# "${NRF5_SDK_PATH}/components/ble/common/ble_conn_params.c"
 
-    list(APPEND SDK_SOURCE_FILES
-            "${NRF5_SDK_PATH}/components/ble/common/ble_advdata.c"
-            "${NRF5_SDK_PATH}/components/ble/common/ble_conn_state.c"
-            "${NRF5_SDK_PATH}/components/ble/common/ble_srv_common.c"
-            )
-      
+    nRF5x_defineSDKSourcesAll()
 
     # adds target for erasing and flashing the board with a softdevice
     add_custom_target(FLASH_SOFTDEVICE ALL
